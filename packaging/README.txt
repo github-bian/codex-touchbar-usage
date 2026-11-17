@@ -1,25 +1,25 @@
-Codex Touch Bar Usage (Apple Silicon)
+Codex Touch Bar — Universal (Apple Silicon / Intel)
 
-Shows Codex quota balance, reset cards, reset times, yesterday's token usage,
-and lifetime token usage while Codex is frontmost.
+Shows reset cards, remaining quota, reset countdown and recent Codex desktop
+conversations in the Touch Bar. macOS 12 or later is required.
 
 Install:
-  ./install.sh
+  1. Double-click Install.command and follow the Terminal output.
+  2. Focus Codex to display the Touch Bar panel.
 
-Uninstall:
-  ./uninstall.sh
+Alternatively, open Terminal in this folder and run ./install.sh.
+The installer replaces any existing CodexTouchBarHelper installation and its
+LaunchAgent. It does not delete Codex login information or session history.
 
-The helper is installed to:
-  ~/Applications/CodexTouchBarHelper.app
+Uninstall: run ./uninstall.sh in Terminal.
 
-It starts at login through:
-  ~/Library/LaunchAgents/com.local.codex-touchbar-helper.plist
+This build is ad-hoc signed and is not Apple-notarized. macOS may block the
+app or installer. Verify the archive against the published SHA-256 checksum;
+if blocked, check System Settings > Privacy & Security for the available
+approval options. A checksum does not verify the publisher's identity.
 
-Focus Codex or the ChatGPT Codex shell to display the Touch Bar panel.
+The helper is installed to ~/Applications/CodexTouchBarHelper.app and starts
+at login through ~/Library/LaunchAgents/com.local.codex-touchbar-helper.plist.
 
-The app is ad-hoc signed and not Apple-notarized. If macOS blocks it, verify
-the downloaded archive checksum, then approve it in System Settings >
-Privacy & Security > Open Anyway.
-
-Project:
-  https://github.com/Daytimeflow/codex-touchbar-usage
+Project: https://github.com/github-bian/codex-touchbar-usage
+Based on: https://github.com/Daytimeflow/codex-touchbar-usage

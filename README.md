@@ -25,6 +25,16 @@
 - 已安装并登录 Codex 桌面应用；额度读取还需要本机 Codex CLI 登录状态（`~/.codex/auth.json`）。
 - Xcode Command Line Tools 或完整 Xcode，用于从源码编译。
 
+## 下载与安装
+
+从 [GitHub Releases](https://github.com/github-bian/codex-touchbar-usage/releases/latest) 下载 `CodexTouchBarUsage-v0.1.0-universal.zip` 和对应的 `.sha256` 文件。该通用包支持 Apple Silicon 和 Intel；安装时无需编译。
+
+1. 在下载目录运行 `shasum -a 256 -c CodexTouchBarUsage-v0.1.0-universal.zip.sha256`，确认校验通过。
+2. 解压后双击 `Install.command`，根据终端提示完成安装；也可以在解压目录运行 `./install.sh`。
+3. 打开 Codex 并将其置于前台。卸载时在解压目录运行 `./uninstall.sh`。
+
+安装会替换已有的 CodexTouchBarHelper 及其 LaunchAgent，不会删除 Codex 登录信息和对话历史。安装包采用临时签名，**未经过 Apple 公证**；macOS 可能阻止运行，可在「系统设置 → 隐私与安全性」查看可用的允许选项。校验和只能检查文件完整性，不能验证发布者身份。
+
 ## 从源码安装
 
 ```bash
@@ -33,7 +43,7 @@ cd codex-touchbar-usage
 ./scripts/install_touchbar_helper.sh
 ```
 
-安装脚本会构建原生 Swift helper，安装至 `~/Applications/CodexTouchBarHelper.app`，并注册登录后启动的 LaunchAgent。安装后切换到 Codex，即可在 Touch Bar 上看到面板。此版本请从本仓库源码安装；上游发布的安装包不包含这些改动。
+安装脚本会构建原生 Swift helper，安装至 `~/Applications/CodexTouchBarHelper.app`，并注册登录后启动的 LaunchAgent。安装后切换到 Codex，即可在 Touch Bar 上看到面板。上游发布的安装包不包含这些改动。
 
 更新：
 
