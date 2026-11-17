@@ -28,11 +28,9 @@
 
 ## 下载与安装
 
-> 当前 v0.2.0 安装包不包含最新的紧凑布局。要体验 README 中的最新效果，请使用下方源码安装方式。
+从 [GitHub Releases](https://github.com/github-bian/codex-touchbar-usage/releases/latest) 下载 `CodexTouchBarUsage-v0.2.1-universal.zip` 和对应的 `.sha256` 文件。该通用包支持 Apple Silicon 和 Intel；安装时无需编译。
 
-从 [GitHub Releases](https://github.com/github-bian/codex-touchbar-usage/releases/latest) 下载 `CodexTouchBarUsage-v0.2.0-universal.zip` 和对应的 `.sha256` 文件。该通用包支持 Apple Silicon 和 Intel；安装时无需编译。
-
-1. 在下载目录运行 `shasum -a 256 -c CodexTouchBarUsage-v0.2.0-universal.zip.sha256`，确认校验通过。
+1. 在下载目录运行 `shasum -a 256 -c CodexTouchBarUsage-v0.2.1-universal.zip.sha256`，确认校验通过。
 2. 解压后双击 `Install.command`，根据终端提示完成安装；也可以在解压目录运行 `./install.sh`。
 3. 打开 Codex 并将其置于前台。卸载时在解压目录运行 `./uninstall.sh`。
 

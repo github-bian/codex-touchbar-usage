@@ -28,11 +28,9 @@ Conversation status is inferred from local session events, not a live status API
 
 ## Download and install
 
-> The current v0.2.0 installer does not include the latest compact layout. Install from source below to try the layout shown in this README.
+Download `CodexTouchBarUsage-v0.2.1-universal.zip` and its `.sha256` file from [GitHub Releases](https://github.com/github-bian/codex-touchbar-usage/releases/latest). The universal build supports Apple Silicon and Intel and does not require a compiler to install.
 
-Download `CodexTouchBarUsage-v0.2.0-universal.zip` and its `.sha256` file from [GitHub Releases](https://github.com/github-bian/codex-touchbar-usage/releases/latest). The universal build supports Apple Silicon and Intel and does not require a compiler to install.
-
-1. In the download folder, run `shasum -a 256 -c CodexTouchBarUsage-v0.2.0-universal.zip.sha256` to check the archive.
+1. In the download folder, run `shasum -a 256 -c CodexTouchBarUsage-v0.2.1-universal.zip.sha256` to check the archive.
 2. Extract it and double-click `Install.command`, then follow the Terminal output; alternatively, run `./install.sh` from the extracted folder.
 3. Open and focus Codex. To uninstall, run `./uninstall.sh` in the extracted folder.
 
