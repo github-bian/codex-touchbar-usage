@@ -33,13 +33,27 @@ struct TouchBarUIHarness {
         let codex = UsageTouchBarView(frame: NSRect(x: 0, y: 0, width: 720, height: 30))
         codex.alphaValue = 1
         var original = UsageSnapshot.placeholder
-        original.primary = LimitWindow(name: "codex", usedPercent: 39, windowMinutes: 10080, resetsAt: 1785258135)
+        original.primary = LimitWindow(name: "codex", usedPercent: 39, windowMinutes: 10080, resetsAt: Int(Date().timeIntervalSince1970) + 9378)
         original.resetCreditsAvailable = 3
         original.resetCreditsExpiresAt = 1785109710
         original.yesterdayTokens = 791733914
         original.cumulativeTokens = 15439107907
         original.source = "app-server"
         codex.snapshot = original
+        precondition(UsageTouchBarView.countdown(3_661, now: Date(timeIntervalSince1970: 0)) == "01:01:01")
+        precondition(UsageTouchBarView.countdown(0, now: Date(timeIntervalSince1970: 10)) == "00:00:00")
+        precondition(UsageTouchBarView.countdown(nil) == "--:--:--")
+        let events = directory.appendingPathComponent("events.jsonl")
+        try "{\"type\":\"event_msg\",\"payload\":{\"type\":\"task_complete\"}}\n".write(to: events, atomically: true, encoding: .utf8)
+        precondition(ConversationStore.status(path: events.path) == .completed)
+        try "{\"type\":\"event_msg\",\"payload\":{\"type\":\"turn_aborted\"}}\n".write(to: events, atomically: true, encoding: .utf8)
+        precondition(ConversationStore.status(path: events.path) == .unknown)
+        precondition(ConversationStore.status(path: events.path + ".missing") == .unknown)
+        codex.conversations = [
+            Conversation(id: UUID().uuidString, title: "优化首页", status: .active),
+            Conversation(id: UUID().uuidString, title: "修复登录", status: .completed),
+            Conversation(id: UUID().uuidString, title: "数据分析", status: .unknown)
+        ]
         try render(codex, to: directory.appendingPathComponent("codex.png"))
         let zcode = ZCodeTouchBarView(frame: codex.frame)
         var z = ZCodeUsageSnapshot.placeholder

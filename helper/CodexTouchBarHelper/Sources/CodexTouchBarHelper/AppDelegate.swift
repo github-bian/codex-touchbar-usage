@@ -22,6 +22,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var localTimer: Timer?
     private var remoteTimer: Timer?
     private var resetTimer: Timer?
+    private var displayTimer: Timer?
+    private var conversationsLoading = false
     private var startup: DispatchWorkItem?
     private var statsContinuation: DispatchWorkItem?
     private var preloadTask: Task<Void, Never>?
@@ -120,6 +122,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         remoteTimer?.tolerance = 3
         configureResetTimer()
+        if target == .codex {
+            refreshConversations()
+            displayTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+                Task { @MainActor [weak self] in self?.touchBarController.tick() }
+            }
+        }
+    }
+
+    private func refreshConversations() {
+        guard target == .codex, !conversationsLoading else { return }
+        conversationsLoading = true
+        let expected = generation
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            let conversations = ConversationStore.recent()
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.conversationsLoading = false
+                if self.target == .codex && self.generation == expected {
+                    self.touchBarController.updateConversations(conversations)
+                }
+            }
+        }
     }
 
     private func stopRefresh() {
@@ -128,6 +152,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         localTimer?.invalidate()
         remoteTimer?.invalidate()
         resetTimer?.invalidate()
+        displayTimer?.invalidate()
+        displayTimer = nil
         localTimer = nil
         remoteTimer = nil
         resetTimer = nil
@@ -139,6 +165,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func refreshLocal() {
         let requestedTarget = target
         let expected = generation
+        if requestedTarget == .codex { refreshConversations() }
         guard requestedTarget != .none, localTasks[requestedTarget] == nil else { return }
         localTasks[requestedTarget] = Task { [weak self] in
             guard let self else { return }
@@ -146,14 +173,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 localTasks[requestedTarget] = nil
                 if target == requestedTarget, generation != expected { refreshLocal() }
             }
-            if requestedTarget == .codex {
-                let local = await codexLoader.local()
-                guard !Task.isCancelled, target == requestedTarget, generation == expected,
-                      let current = codexSnapshot else { return }
-                let merged = current.mergingLocalTokenUsage(from: local)
-                codexSnapshot = merged
-                touchBarController.update(merged)
-            } else {
+            if requestedTarget == .zcode {
                 let snapshot = await zcodeStore.refreshLocal()
                 guard !Task.isCancelled, target == requestedTarget, generation == expected else { return }
                 zcodeLoaded = true

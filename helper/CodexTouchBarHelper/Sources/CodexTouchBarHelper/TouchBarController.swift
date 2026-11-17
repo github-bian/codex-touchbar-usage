@@ -119,6 +119,12 @@ final class TouchBarController: NSObject, NSTouchBarDelegate {
         }
     }
 
+    func updateConversations(_ conversations: [Conversation]) {
+        usageView.conversations = conversations
+    }
+
+    func tick() { usageView.needsDisplay = true }
+
     func update(_ snapshot: UsageSnapshot) {
         guard usageView.snapshot != snapshot else { return }
         usageView.snapshot = snapshot

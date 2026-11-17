@@ -2,296 +2,116 @@ import AppKit
 import CodexTouchBarCore
 
 final class UsageTouchBarView: NSView {
-    var snapshot: UsageSnapshot? = .placeholder {
-        didSet {
-            errorMessage = nil
-            needsDisplay = true
-        }
-    }
-
-    var errorMessage: String? {
-        didSet {
-            needsDisplay = true
-        }
-    }
-
+    var snapshot: UsageSnapshot? = .placeholder { didSet { errorMessage = nil; needsDisplay = true } }
+    var errorMessage: String? { didSet { needsDisplay = true } }
+    var conversations: [Conversation] = [] { didSet { if oldValue != conversations { updateButtons() } } }
     override var isFlipped: Bool { true }
     override var intrinsicContentSize: NSSize { NSSize(width: 720, height: 30) }
-
-    private let codexFont = NSFontManager.shared.convert(
-        NSFont.systemFont(ofSize: 14.5, weight: .semibold),
-        toHaveTrait: .italicFontMask
-    )
-    private let labelFont = NSFont.systemFont(ofSize: 12.7, weight: .semibold)
-    private let valueFont = NSFont.monospacedDigitSystemFont(ofSize: 12.7, weight: .semibold)
-    private let smallMonoFont = NSFont.monospacedDigitSystemFont(ofSize: 11.2, weight: .medium)
-    private let tokenFont = NSFont.systemFont(ofSize: 11.4, weight: .semibold)
-
-    private let white = NSColor(calibratedWhite: 0.94, alpha: 1)
-    private let muted = NSColor(calibratedWhite: 0.78, alpha: 0.96)
-    private let emptyFill = NSColor(calibratedRed: 0.15, green: 0.18, blue: 0.15, alpha: 1)
-    private let emptyStroke = NSColor(calibratedRed: 0.25, green: 0.30, blue: 0.23, alpha: 0.9)
-    private let green = NSColor(calibratedRed: 0.72, green: 1.0, blue: 0.38, alpha: 1)
-    private let greenTop = NSColor(calibratedRed: 0.91, green: 1.0, blue: 0.68, alpha: 0.92)
-    private let warning = NSColor(calibratedRed: 1.0, green: 0.76, blue: 0.28, alpha: 1)
-    private let danger = NSColor(calibratedRed: 1.0, green: 0.36, blue: 0.32, alpha: 1)
+    private let scroll = NSScrollView(frame: NSRect(x: 256, y: 0, width: 464, height: 30))
+    private let content = NSView(frame: NSRect(x: 0, y: 0, width: 464, height: 30))
+    private var selectedID: String?
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true
-        layer?.backgroundColor = NSColor.clear.cgColor
         alphaValue = 0
+        scroll.drawsBackground = false
+        scroll.hasHorizontalScroller = false
+        scroll.hasVerticalScroller = false
+        scroll.autohidesScrollers = true
+        scroll.documentView = content
+        addSubview(scroll)
     }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-    }
+    required init?(coder: NSCoder) { super.init(coder: coder) }
 
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
-        NSColor.clear.setFill()
-        dirtyRect.fill()
-
-        let snapshot = snapshot ?? .placeholder
-        let row1Y: CGFloat = 0.0
-        let row2Y: CGFloat = 15.0
-        let textHeight: CGFloat = 15.0
-
-        drawText("Codex", in: NSRect(x: 8, y: 7.0, width: 60, height: 17), font: codexFont, color: white, alignment: .left)
-
-        drawText(UsageFormatting.windowLabel(snapshot.primary), in: NSRect(x: 75, y: row1Y, width: 43, height: textHeight), font: labelFont, color: white, alignment: .left)
-        drawText("重置卡", in: NSRect(x: 75, y: row2Y, width: 43, height: textHeight), font: labelFont, color: white, alignment: .left)
-
-        let barX: CGFloat = 124
-        drawSegmentedBar(
-            x: barX,
-            y: row1Y + 4.5,
-            usedPercent: snapshot.primary?.usedPercent,
-            segments: 10,
-            segmentWidth: 21,
-            segmentHeight: 7.8,
-            gap: 5.2
-        )
-        drawResetCreditTickets(
-            x: barX,
-            y: row2Y + 4.5,
-            availableCount: snapshot.resetCreditsAvailable,
-            expiresAt: snapshot.resetCreditsExpiresAt
-        )
-
-        let percentX: CGFloat = 396
-        let dateX: CGFloat = 454
-        let tokenX: CGFloat = 552
-
-        drawText(
-            UsageFormatting.balanceLabel(usedPercent: snapshot.primary?.usedPercent),
-            in: NSRect(x: percentX, y: row1Y, width: 42, height: textHeight),
-            font: valueFont,
-            color: white,
-            alignment: .right
-        )
-        drawText(
-            UsageFormatting.resetCreditCountLabel(snapshot.resetCreditsAvailable),
-            in: NSRect(x: percentX, y: row2Y, width: 42, height: textHeight),
-            font: valueFont,
-            color: snapshot.resetCreditsAvailable == 0 ? muted : white,
-            alignment: .right
-        )
-
-        drawText(
-            UsageFormatting.resetLabel(snapshot.primary?.resetsAt),
-            in: NSRect(x: dateX, y: row1Y, width: 82, height: textHeight),
-            font: smallMonoFont,
-            color: muted,
-            alignment: .left
-        )
-        drawText(
-            UsageFormatting.resetLabel(snapshot.resetCreditsExpiresAt),
-            in: NSRect(x: dateX, y: row2Y, width: 82, height: textHeight),
-            font: smallMonoFont,
-            color: muted,
-            alignment: .left
-        )
-
-        let rows = UsageFormatting.tokenRows(snapshot)
-        drawText(rows.0, in: NSRect(x: tokenX, y: row1Y, width: 150, height: textHeight), font: tokenFont, color: white, alignment: .left)
-        drawText(rows.1, in: NSRect(x: tokenX, y: row2Y, width: 150, height: textHeight), font: tokenFont, color: white, alignment: .left)
-
-        if snapshot.source == "placeholder" {
-            drawActivityDots()
-        } else if errorMessage != nil {
-            drawErrorDot()
-        }
-    }
-
-    private func drawResetCreditTickets(
-        x: CGFloat,
-        y: CGFloat,
-        availableCount: Int?,
-        expiresAt: Int?
-    ) {
-        let count = max(0, availableCount ?? 0)
-        let visibleCount = min(count, 7)
-        let ticketWidth: CGFloat = 28
-        let ticketHeight: CGFloat = 7.8
-        let gap: CGFloat = 5.5
-        let color = resetCreditColor(availableCount: availableCount, expiresAt: expiresAt)
-
-        if availableCount == nil || count == 0 {
-            let rect = NSRect(x: x, y: y, width: ticketWidth, height: ticketHeight)
-            let path = NSBezierPath(roundedRect: rect, xRadius: 2.6, yRadius: 2.6)
-            emptyFill.setFill()
-            path.fill()
-            emptyStroke.withAlphaComponent(availableCount == nil ? 0.55 : 0.35).setStroke()
-            path.lineWidth = 0.8
-            path.stroke()
-            return
-        }
-
-        for index in 0..<visibleCount {
-            let left = x + CGFloat(index) * (ticketWidth + gap)
-            let rect = NSRect(x: left, y: y, width: ticketWidth, height: ticketHeight)
-            let path = NSBezierPath(roundedRect: rect, xRadius: 2.6, yRadius: 2.6)
-
-            color.withAlphaComponent(0.17).setFill()
-            path.fill()
-            color.withAlphaComponent(0.78).setStroke()
-            path.lineWidth = 0.85
-            path.stroke()
-
-            color.withAlphaComponent(0.52).setStroke()
-            let divider = NSBezierPath()
-            divider.move(to: NSPoint(x: left + 6.5, y: y + 1.8))
-            divider.line(to: NSPoint(x: left + 6.5, y: y + ticketHeight - 1.8))
-            divider.lineWidth = 0.75
-            divider.stroke()
-
-            greenTop.withAlphaComponent(0.42).setFill()
-            NSBezierPath(
-                roundedRect: NSRect(x: left + 9.5, y: y + 1.25, width: ticketWidth - 12, height: 1.35),
-                xRadius: 0.7,
-                yRadius: 0.7
-            ).fill()
-        }
-
-        if count > visibleCount {
-            let plusX = x + CGFloat(visibleCount) * (ticketWidth + gap) - gap + 4
-            drawText(
-                "+",
-                in: NSRect(x: plusX, y: y - 4, width: 12, height: 15),
-                font: valueFont,
-                color: color,
-                alignment: .left
-            )
-        }
-    }
-
-    private func resetCreditColor(availableCount: Int?, expiresAt: Int?) -> NSColor {
-        guard let availableCount, availableCount > 0 else { return emptyStroke }
-        if let expiresAt,
-           TimeInterval(expiresAt) - Date().timeIntervalSince1970 <= 24 * 60 * 60 {
-            return warning
-        }
-        return green
-    }
-
-    private func drawText(
-        _ text: String,
-        in rect: NSRect,
-        font: NSFont,
-        color: NSColor,
-        alignment: NSTextAlignment
-    ) {
-        let paragraph = NSMutableParagraphStyle()
-        paragraph.alignment = alignment
-        paragraph.lineBreakMode = .byClipping
-        (text as NSString).draw(
-            in: rect,
-            withAttributes: [
-                .font: font,
-                .foregroundColor: color,
-                .paragraphStyle: paragraph
-            ]
-        )
-    }
-
-    private func drawSegmentedBar(
-        x: CGFloat,
-        y: CGFloat,
-        usedPercent: Double?,
-        segments: Int,
-        segmentWidth: CGFloat,
-        segmentHeight: CGFloat,
-        gap: CGFloat
-    ) {
-        let remaining = UsageFormatting.remainingPercent(usedPercent: usedPercent) ?? 0
-        let segmentValue = 100.0 / Double(segments)
-
-        for index in 0..<segments {
-            let left = x + CGFloat(index) * (segmentWidth + gap)
-            let rect = NSRect(x: left, y: y, width: segmentWidth, height: segmentHeight)
-            let path = NSBezierPath(roundedRect: rect, xRadius: segmentHeight / 2, yRadius: segmentHeight / 2)
-
-            emptyFill.setFill()
-            path.fill()
-            emptyStroke.setStroke()
-            path.lineWidth = 0.8
-            path.stroke()
-
-            let start = Double(index) * segmentValue
-            let end = Double(index + 1) * segmentValue
-            let fillRatio: Double
-            if remaining <= start {
-                fillRatio = 0
-            } else if remaining >= end {
-                fillRatio = 1
-            } else {
-                fillRatio = (remaining - start) / segmentValue
+        let s = snapshot ?? .placeholder
+        let white = NSColor(white: 0.95, alpha: 1)
+        let font = NSFont.systemFont(ofSize: 12, weight: .semibold)
+        let mono = NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .medium)
+        let badge = NSBezierPath(roundedRect: NSRect(x: 3, y: 4, width: 49, height: 22), xRadius: 11, yRadius: 11)
+        NSColor.systemTeal.setStroke()
+        badge.lineWidth = 1.2
+        badge.stroke()
+        let ticket = NSBezierPath()
+        ticket.move(to: NSPoint(x: 11, y: 9))
+        ticket.line(to: NSPoint(x: 24, y: 9))
+        ticket.line(to: NSPoint(x: 24, y: 12))
+        ticket.curve(to: NSPoint(x: 24, y: 18), controlPoint1: NSPoint(x: 21, y: 12), controlPoint2: NSPoint(x: 21, y: 18))
+        ticket.line(to: NSPoint(x: 24, y: 21))
+        ticket.line(to: NSPoint(x: 11, y: 21))
+        ticket.line(to: NSPoint(x: 11, y: 18))
+        ticket.curve(to: NSPoint(x: 11, y: 12), controlPoint1: NSPoint(x: 14, y: 18), controlPoint2: NSPoint(x: 14, y: 12))
+        ticket.close()
+        ticket.lineWidth = 1.2
+        ticket.lineJoinStyle = .round
+        ticket.stroke()
+        text(s.resetCreditsAvailable.map(String.init) ?? "—", x: 29, width: 21, font: font, color: white)
+        let center = NSPoint(x: 70, y: 15)
+        let radius: CGFloat = 8
+        let track = NSBezierPath(ovalIn: NSRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2))
+        track.lineWidth = 3
+        NSColor(white: 0.24, alpha: 1).setStroke()
+        track.stroke()
+        if let remaining = UsageFormatting.remainingPercent(usedPercent: s.primary?.usedPercent) {
+            let fraction = max(0, min(100, remaining)) / 100
+            let progress = NSBezierPath()
+            progress.lineWidth = 3
+            progress.lineCapStyle = .round
+            if fraction >= 1 {
+                progress.appendOval(in: NSRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2))
+            } else if fraction > 0 {
+                progress.appendArc(withCenter: center, radius: radius, startAngle: 90, endAngle: 90 - CGFloat(fraction) * 360, clockwise: true)
             }
-            guard fillRatio > 0 else { continue }
-
-            let fillWidth = max(1.2, segmentWidth * CGFloat(fillRatio))
-            let fillRect = NSRect(x: left, y: y, width: min(segmentWidth, fillWidth), height: segmentHeight)
-            let isHealthy = remaining > 30
-            let fillColor = fillColor(for: remaining)
-
-            NSGraphicsContext.saveGraphicsState()
-            path.addClip()
-            fillColor.setFill()
-            fillRect.fill()
-            let highlightRect = NSRect(
-                x: left + 1.4,
-                y: y + 1.1,
-                width: max(0, min(segmentWidth, fillWidth) - 2.8),
-                height: segmentHeight * 0.34
-            )
-            greenTop.withAlphaComponent(isHealthy ? 0.88 : 0.44).setFill()
-            NSBezierPath(
-                roundedRect: highlightRect,
-                xRadius: highlightRect.height / 2,
-                yRadius: highlightRect.height / 2
-            ).fill()
-            NSGraphicsContext.restoreGraphicsState()
+            (remaining <= 10 ? NSColor.systemRed : remaining <= 30 ? NSColor.systemOrange : NSColor.systemTeal).setStroke()
+            progress.stroke()
         }
+        text(UsageFormatting.balanceLabel(usedPercent: s.primary?.usedPercent), x: 84, width: 43, font: font, color: white)
+        text("◷ " + Self.countdown(s.primary?.resetsAt), x: 133, width: 114, font: mono, color: white)
+        NSColor(white: 0.3, alpha: 1).setFill()
+        NSRect(x: 250, y: 6, width: 1, height: 18).fill()
     }
 
-    private func fillColor(for remaining: Double) -> NSColor {
-        if remaining <= 10 { return danger }
-        if remaining <= 30 { return warning }
-        return green
+    static func countdown(_ timestamp: Int?, now: Date = Date()) -> String {
+        guard let timestamp else { return "--:--:--" }
+        let seconds = max(0, timestamp - Int(now.timeIntervalSince1970))
+        if seconds >= 86400 { return "\(seconds / 86400)天 \(String(format: "%02d:%02d", (seconds % 86400) / 3600, (seconds % 3600) / 60))" }
+        return String(format: "%02d:%02d:%02d", seconds / 3600, (seconds % 3600) / 60, seconds % 60)
     }
 
-    private func drawActivityDots() {
-        let baseX: CGFloat = 701
-        for index in 0..<4 {
-            let alpha = 0.25 + CGFloat(index) * 0.16
-            white.withAlphaComponent(alpha).setFill()
-            NSBezierPath(ovalIn: NSRect(x: baseX + CGFloat(index) * 4.8, y: 11.5, width: 2.5, height: 2.5)).fill()
+    private func text(_ value: String, x: CGFloat, width: CGFloat, font: NSFont, color: NSColor) {
+        (value as NSString).draw(in: NSRect(x: x, y: 7, width: width, height: 18), withAttributes: [.font: font, .foregroundColor: color])
+    }
+
+    private func updateButtons() {
+        content.subviews.forEach { $0.removeFromSuperview() }
+        var x: CGFloat = 0
+        for conversation in conversations {
+            let button = NSButton(frame: NSRect(x: x, y: 3, width: 126, height: 24))
+            button.isBordered = false
+            button.wantsLayer = true
+            button.layer?.backgroundColor = NSColor(white: 0.15, alpha: 1).cgColor
+            button.layer?.cornerRadius = 12
+            button.layer?.borderWidth = conversation.id == selectedID ? 1 : 0
+            button.layer?.borderColor = NSColor.systemBlue.cgColor
+            let dot = conversation.status == .active ? "● " : conversation.status == .completed ? "✓ " : "• "
+            let color: NSColor = conversation.status == .active ? .systemBlue : conversation.status == .completed ? .systemGreen : .secondaryLabelColor
+            let title = NSMutableAttributedString(string: dot, attributes: [.foregroundColor: color, .font: NSFont.systemFont(ofSize: 11, weight: .bold)])
+            title.append(NSAttributedString(string: conversation.title, attributes: [.foregroundColor: NSColor.white, .font: NSFont.systemFont(ofSize: 11, weight: .medium)]))
+            button.attributedTitle = title
+            button.lineBreakMode = .byTruncatingTail
+            button.identifier = NSUserInterfaceItemIdentifier(conversation.id)
+            button.target = self
+            button.action = #selector(openConversation(_:))
+            content.addSubview(button)
+            x += 132
         }
+        content.frame.size.width = max(scroll.contentSize.width, x)
     }
 
-    private func drawErrorDot() {
-        danger.setFill()
-        NSBezierPath(ovalIn: NSRect(x: 706, y: 11.5, width: 4.5, height: 4.5)).fill()
+    @objc private func openConversation(_ sender: NSButton) {
+        guard let id = sender.identifier?.rawValue, UUID(uuidString: id) != nil, let url = URL(string: "codex://threads/\(id)") else { return }
+        if NSWorkspace.shared.open(url) { selectedID = id; updateButtons() }
     }
 }

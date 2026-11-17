@@ -15,6 +15,7 @@ swiftc -target "${TARGET}" -I "${BUILD}" -L "${BUILD}" -lCodexTouchBarCore \
   "${PACKAGE}/Sources/CodexTouchBarHelper/FrontmostAppMonitor.swift" \
   "${PACKAGE}/Sources/CodexTouchBarHelper/TouchBarController.swift" \
   "${PACKAGE}/Sources/CodexTouchBarHelper/UsageTouchBarView.swift" \
+  "${PACKAGE}/Sources/CodexTouchBarHelper/ConversationStore.swift" \
   "${PACKAGE}/Sources/CodexTouchBarHelper/ZCodeTouchBarView.swift" \
   "${PACKAGE}/Tests/TouchBarUIHarness.swift" -o "${BUILD}/test-ui"
 "${BUILD}/test-ui" "${1:-/tmp/codex-touchbar-preview}"
