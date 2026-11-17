@@ -54,6 +54,20 @@ struct TouchBarUIHarness {
             Conversation(id: UUID().uuidString, title: "修复登录", status: .completed),
             Conversation(id: UUID().uuidString, title: "数据分析", status: .unknown)
         ]
+        let scroll = codex.subviews.compactMap { $0 as? NSScrollView }.first!
+        let shortStart = scroll.frame.minX
+        original.primary?.resetsAt = Int(Date().timeIntervalSince1970) + 123 * 86400
+        codex.snapshot = original
+        precondition(scroll.frame.minX > shortStart, "longer countdown must reserve more space")
+        original.primary?.resetsAt = Int(Date().timeIntervalSince1970) + 9378
+        codex.snapshot = original
+        precondition(scroll.frame.minX == shortStart, "shorter countdown must release space")
+        original.primary?.usedPercent = 0.1
+        codex.snapshot = original
+        precondition(scroll.frame.minX > shortStart, "longer quota must reserve more space")
+        original.primary?.usedPercent = 39
+        codex.snapshot = original
+        precondition(scroll.frame.minX == shortStart, "shorter quota must release space")
         codex.selectedID = codex.conversations.first?.id
         try render(codex, to: directory.appendingPathComponent("codex.png"))
         let zcode = ZCodeTouchBarView(frame: codex.frame)

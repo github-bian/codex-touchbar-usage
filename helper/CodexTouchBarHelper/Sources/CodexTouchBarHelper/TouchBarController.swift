@@ -123,7 +123,7 @@ final class TouchBarController: NSObject, NSTouchBarDelegate {
         usageView.conversations = conversations
     }
 
-    func tick() { usageView.needsDisplay = true }
+    func tick() { usageView.refreshCountdown() }
 
     func update(_ snapshot: UsageSnapshot) {
         guard usageView.snapshot != snapshot else { return }

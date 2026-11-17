@@ -2,7 +2,7 @@
 
 [English](README.en.md) | 简体中文
 
-在 MacBook Pro Touch Bar 上查看 Codex 额度，并快速切换最近的对话。基于 [Daytimeflow/codex-touchbar-usage](https://github.com/Daytimeflow/codex-touchbar-usage) 的二次开发版本。
+让 MacBook Pro Touch Bar 成为 Codex 的迷你工作台：一眼查看额度与重置倒计时，轻点即可切换最近的对话。基于 [Daytimeflow/codex-touchbar-usage](https://github.com/Daytimeflow/codex-touchbar-usage) 的二次开发版本。
 
 ![Touch Bar 显示重置卡、额度、倒计时和对话](assets/touchbar-conversations.png)
 
@@ -12,9 +12,10 @@
 
 - **重置卡**：显示可用数量。
 - **额度**：以环形进度条和百分比显示主额度剩余量，低额度时变色。
-- **倒计时**：显示距离主额度重置的剩余时间。
+- **重置倒计时**：放大的时钟图标与数字清晰显示距离额度重置的剩余时间。
+- **紧凑布局**：额度和倒计时按实际文字宽度调整间距，把更多空间留给对话标题。
 - **对话切换**：横向显示最近 50 条未归档的本机 Codex 桌面对话，滑动查看更多，点按标题打开对应对话。
-- **状态提示**：蓝点代表根据近期事件推测的进行中，绿勾代表最近一次任务完成，灰点代表状态未知。银灰猫耳描边和青色猫爪表示最近从 Touch Bar 点按的对话。
+- **状态提示**：蓝点代表根据近期事件推测的进行中，绿点代表最近一次任务完成，灰点代表状态未知。银灰猫耳描边和青色猫爪表示最近从 Touch Bar 点按的对话。
 - **前台显示**：Codex 位于前台时显示面板，切换到其他应用后恢复系统控制条。
 
 对话状态来自本地会话事件，并非实时运行状态接口：长任务、异常退出或 Codex 更新可能导致状态未知或短暂不准确。当前不显示云端或已归档对话。对话跳转、会话格式及 Touch Bar 展示依赖内部行为，未来版本可能需要适配。
@@ -23,9 +24,11 @@
 
 - 带 Touch Bar 的 MacBook Pro，macOS 12 或更新版本。
 - 已安装并登录 Codex 桌面应用；额度读取还需要本机 Codex CLI 登录状态（`~/.codex/auth.json`）。
-- Xcode Command Line Tools 或完整 Xcode，用于从源码编译。
+- 从源码安装时需要 Xcode Command Line Tools 或完整 Xcode；使用发布包无需编译。
 
 ## 下载与安装
+
+> 当前 v0.2.0 安装包不包含最新的紧凑布局。要体验 README 中的最新效果，请使用下方源码安装方式。
 
 从 [GitHub Releases](https://github.com/github-bian/codex-touchbar-usage/releases/latest) 下载 `CodexTouchBarUsage-v0.2.0-universal.zip` 和对应的 `.sha256` 文件。该通用包支持 Apple Silicon 和 Intel；安装时无需编译。
 

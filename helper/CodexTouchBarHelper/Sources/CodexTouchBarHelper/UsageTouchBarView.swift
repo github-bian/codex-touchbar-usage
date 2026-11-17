@@ -47,7 +47,7 @@ private final class ConversationButton: NSButton {
 }
 
 final class UsageTouchBarView: NSView {
-    var snapshot: UsageSnapshot? = .placeholder { didSet { errorMessage = nil; needsDisplay = true } }
+    var snapshot: UsageSnapshot? = .placeholder { didSet { errorMessage = nil; refreshCountdown() } }
     var errorMessage: String? { didSet { needsDisplay = true } }
     var conversations: [Conversation] = [] { didSet { if oldValue != conversations { updateButtons() } } }
     override var isFlipped: Bool { true }
@@ -55,6 +55,11 @@ final class UsageTouchBarView: NSView {
     private let scroll = NSScrollView(frame: NSRect(x: 256, y: 0, width: 464, height: 30))
     private let content = NSView(frame: NSRect(x: 0, y: 0, width: 464, height: 30))
     var selectedID: String? { didSet { if oldValue != selectedID { updateButtons() } } }
+    private let countdownFont = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .semibold)
+    private let quotaFont = NSFont.systemFont(ofSize: 12, weight: .semibold)
+    private var clockX: CGFloat = 133
+    private var countdownTextX: CGFloat { clockX + 18 }
+    private var dividerX: CGFloat = 250
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -66,6 +71,7 @@ final class UsageTouchBarView: NSView {
         scroll.autohidesScrollers = true
         scroll.documentView = content
         addSubview(scroll)
+        refreshCountdown()
     }
     required init?(coder: NSCoder) { super.init(coder: coder) }
 
@@ -73,8 +79,7 @@ final class UsageTouchBarView: NSView {
         super.draw(dirtyRect)
         let s = snapshot ?? .placeholder
         let white = NSColor(white: 0.95, alpha: 1)
-        let font = NSFont.systemFont(ofSize: 12, weight: .semibold)
-        let mono = NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .medium)
+        let font = quotaFont
         let badge = NSBezierPath(roundedRect: NSRect(x: 3, y: 4, width: 49, height: 22), xRadius: 11, yRadius: 11)
         NSColor.systemTeal.setStroke()
         badge.lineWidth = 1.2
@@ -112,10 +117,33 @@ final class UsageTouchBarView: NSView {
             (remaining <= 10 ? NSColor.systemRed : remaining <= 30 ? NSColor.systemOrange : NSColor.systemTeal).setStroke()
             progress.stroke()
         }
-        text(UsageFormatting.balanceLabel(usedPercent: s.primary?.usedPercent), x: 84, width: 43, font: font, color: white)
-        text("◷ " + Self.countdown(s.primary?.resetsAt), x: 133, width: 114, font: mono, color: white)
+        text(UsageFormatting.balanceLabel(usedPercent: s.primary?.usedPercent), x: 84, width: clockX - 89, font: font, color: white)
+        let clock = NSBezierPath(ovalIn: NSRect(x: clockX, y: 8, width: 13, height: 13))
+        white.setStroke()
+        clock.lineWidth = 1.2
+        clock.stroke()
+        let hands = NSBezierPath()
+        hands.move(to: NSPoint(x: clockX + 6.5, y: 10.5))
+        hands.line(to: NSPoint(x: clockX + 6.5, y: 14.5))
+        hands.line(to: NSPoint(x: clockX + 9, y: 16))
+        hands.lineWidth = 1.2
+        hands.stroke()
+        text(Self.countdown(s.primary?.resetsAt), x: countdownTextX, width: dividerX - countdownTextX - 5, font: countdownFont, color: white)
         NSColor(white: 0.3, alpha: 1).setFill()
-        NSRect(x: 250, y: 6, width: 1, height: 18).fill()
+        NSRect(x: dividerX, y: 6, width: 1, height: 18).fill()
+    }
+
+    func refreshCountdown() {
+        let quota = UsageFormatting.balanceLabel(usedPercent: snapshot?.primary?.usedPercent)
+        clockX = 84 + ceil((quota as NSString).size(withAttributes: [.font: quotaFont]).width) + 9
+        let value = Self.countdown(snapshot?.primary?.resetsAt)
+        let width = ceil((value as NSString).size(withAttributes: [.font: countdownFont]).width)
+        dividerX = countdownTextX + width + 7
+        let start = dividerX + 6
+        scroll.frame = NSRect(x: start, y: 0, width: max(0, bounds.width - start), height: bounds.height)
+        let itemsWidth = CGFloat(conversations.count) * 110
+        content.frame.size.width = max(scroll.contentSize.width, itemsWidth)
+        needsDisplay = true
     }
 
     static func countdown(_ timestamp: Int?, now: Date = Date()) -> String {

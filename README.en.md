@@ -2,7 +2,7 @@
 
 English | [简体中文](README.md)
 
-See your Codex quota and switch between recent conversations from the MacBook Pro Touch Bar. This project builds on [Daytimeflow/codex-touchbar-usage](https://github.com/Daytimeflow/codex-touchbar-usage).
+Turn your MacBook Pro Touch Bar into a compact Codex dashboard: check your quota and reset countdown at a glance, then tap to switch conversations. This project builds on [Daytimeflow/codex-touchbar-usage](https://github.com/Daytimeflow/codex-touchbar-usage).
 
 ![Touch Bar showing reset cards, quota, countdown, and conversations](assets/touchbar-conversations.png)
 
@@ -12,9 +12,10 @@ See your Codex quota and switch between recent conversations from the MacBook Pr
 
 - **Reset cards:** See the available count.
 - **Quota:** View remaining primary quota as a percentage and circular progress indicator, with color changes at low levels.
-- **Countdown:** See the time remaining until the primary quota resets.
+- **Reset countdown:** A larger clock icon and clear digits show the time remaining until the primary quota resets.
+- **Compact layout:** Quota and countdown spacing adapts to their text, leaving more room for conversation titles.
 - **Conversation switching:** Browse the 50 most recent unarchived local Codex desktop conversations horizontally and tap a title to open it.
-- **Status indicators:** A blue dot indicates activity inferred from recent events, a green check indicates the last task completed, and a gray dot means the status is unknown. A silver cat-ear outline and teal paw mark the conversation most recently tapped in the Touch Bar.
+- **Status indicators:** A blue dot indicates activity inferred from recent events, a green dot indicates the last task completed, and a gray dot means the status is unknown. A silver cat-ear outline and teal paw mark the conversation most recently tapped in the Touch Bar.
 - **Foreground awareness:** The panel appears when Codex is focused; system controls return when switching away.
 
 Conversation status is inferred from local session events, not a live status API. Long-running or interrupted tasks and Codex updates can result in unknown or temporarily inaccurate indicators. Cloud and archived conversations are not currently listed. Navigation, session formats, and Touch Bar presentation rely on internal behavior and may need updates as the software changes.
@@ -23,9 +24,11 @@ Conversation status is inferred from local session events, not a live status API
 
 - A MacBook Pro with Touch Bar and macOS 12 or later.
 - The Codex desktop app, signed in. Quota retrieval also requires a local Codex CLI login (`~/.codex/auth.json`).
-- Xcode Command Line Tools or full Xcode to build from source.
+- Xcode Command Line Tools or full Xcode for source installation; prebuilt releases do not require a compiler.
 
 ## Download and install
+
+> The current v0.2.0 installer does not include the latest compact layout. Install from source below to try the layout shown in this README.
 
 Download `CodexTouchBarUsage-v0.2.0-universal.zip` and its `.sha256` file from [GitHub Releases](https://github.com/github-bian/codex-touchbar-usage/releases/latest). The universal build supports Apple Silicon and Intel and does not require a compiler to install.
 
