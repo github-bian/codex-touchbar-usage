@@ -14,7 +14,7 @@
 - **额度**：以环形进度条和百分比显示主额度剩余量，低额度时变色。
 - **倒计时**：显示距离主额度重置的剩余时间。
 - **对话切换**：横向显示最近 50 条未归档的本机 Codex 桌面对话，滑动查看更多，点按标题打开对应对话。
-- **状态提示**：蓝点代表根据近期事件推测的进行中，绿勾代表最近一次任务完成，灰点代表状态未知。蓝色描边表示最近从 Touch Bar 点按的对话。
+- **状态提示**：蓝点代表根据近期事件推测的进行中，绿勾代表最近一次任务完成，灰点代表状态未知。银灰猫耳描边和青色猫爪表示最近从 Touch Bar 点按的对话。
 - **前台显示**：Codex 位于前台时显示面板，切换到其他应用后恢复系统控制条。
 
 对话状态来自本地会话事件，并非实时运行状态接口：长任务、异常退出或 Codex 更新可能导致状态未知或短暂不准确。当前不显示云端或已归档对话。对话跳转、会话格式及 Touch Bar 展示依赖内部行为，未来版本可能需要适配。
@@ -27,9 +27,9 @@
 
 ## 下载与安装
 
-从 [GitHub Releases](https://github.com/github-bian/codex-touchbar-usage/releases/latest) 下载 `CodexTouchBarUsage-v0.1.0-universal.zip` 和对应的 `.sha256` 文件。该通用包支持 Apple Silicon 和 Intel；安装时无需编译。
+从 [GitHub Releases](https://github.com/github-bian/codex-touchbar-usage/releases/latest) 下载 `CodexTouchBarUsage-v0.2.0-universal.zip` 和对应的 `.sha256` 文件。该通用包支持 Apple Silicon 和 Intel；安装时无需编译。
 
-1. 在下载目录运行 `shasum -a 256 -c CodexTouchBarUsage-v0.1.0-universal.zip.sha256`，确认校验通过。
+1. 在下载目录运行 `shasum -a 256 -c CodexTouchBarUsage-v0.2.0-universal.zip.sha256`，确认校验通过。
 2. 解压后双击 `Install.command`，根据终端提示完成安装；也可以在解压目录运行 `./install.sh`。
 3. 打开 Codex 并将其置于前台。卸载时在解压目录运行 `./uninstall.sh`。
 

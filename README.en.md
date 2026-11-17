@@ -14,7 +14,7 @@ See your Codex quota and switch between recent conversations from the MacBook Pr
 - **Quota:** View remaining primary quota as a percentage and circular progress indicator, with color changes at low levels.
 - **Countdown:** See the time remaining until the primary quota resets.
 - **Conversation switching:** Browse the 50 most recent unarchived local Codex desktop conversations horizontally and tap a title to open it.
-- **Status indicators:** A blue dot indicates activity inferred from recent events, a green check indicates the last task completed, and a gray dot means the status is unknown. A blue outline marks the conversation most recently tapped in the Touch Bar.
+- **Status indicators:** A blue dot indicates activity inferred from recent events, a green check indicates the last task completed, and a gray dot means the status is unknown. A silver cat-ear outline and teal paw mark the conversation most recently tapped in the Touch Bar.
 - **Foreground awareness:** The panel appears when Codex is focused; system controls return when switching away.
 
 Conversation status is inferred from local session events, not a live status API. Long-running or interrupted tasks and Codex updates can result in unknown or temporarily inaccurate indicators. Cloud and archived conversations are not currently listed. Navigation, session formats, and Touch Bar presentation rely on internal behavior and may need updates as the software changes.
@@ -27,9 +27,9 @@ Conversation status is inferred from local session events, not a live status API
 
 ## Download and install
 
-Download `CodexTouchBarUsage-v0.1.0-universal.zip` and its `.sha256` file from [GitHub Releases](https://github.com/github-bian/codex-touchbar-usage/releases/latest). The universal build supports Apple Silicon and Intel and does not require a compiler to install.
+Download `CodexTouchBarUsage-v0.2.0-universal.zip` and its `.sha256` file from [GitHub Releases](https://github.com/github-bian/codex-touchbar-usage/releases/latest). The universal build supports Apple Silicon and Intel and does not require a compiler to install.
 
-1. In the download folder, run `shasum -a 256 -c CodexTouchBarUsage-v0.1.0-universal.zip.sha256` to check the archive.
+1. In the download folder, run `shasum -a 256 -c CodexTouchBarUsage-v0.2.0-universal.zip.sha256` to check the archive.
 2. Extract it and double-click `Install.command`, then follow the Terminal output; alternatively, run `./install.sh` from the extracted folder.
 3. Open and focus Codex. To uninstall, run `./uninstall.sh` in the extracted folder.
 

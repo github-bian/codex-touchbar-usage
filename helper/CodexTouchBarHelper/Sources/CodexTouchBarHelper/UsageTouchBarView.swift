@@ -1,6 +1,51 @@
 import AppKit
 import CodexTouchBarCore
 
+private final class ConversationButton: NSButton {
+    var conversation: Conversation!
+    var selected = false
+    override var isFlipped: Bool { true }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let outline = NSBezierPath()
+        if selected {
+            outline.move(to: NSPoint(x: 11, y: 7))
+            outline.curve(to: NSPoint(x: 18, y: 7), controlPoint1: NSPoint(x: 10, y: -1), controlPoint2: NSPoint(x: 14, y: 1))
+            outline.line(to: NSPoint(x: bounds.width - 18, y: 7))
+            outline.curve(to: NSPoint(x: bounds.width - 11, y: 7), controlPoint1: NSPoint(x: bounds.width - 14, y: 1), controlPoint2: NSPoint(x: bounds.width - 10, y: -1))
+            outline.curve(to: NSPoint(x: bounds.width - 2, y: 15), controlPoint1: NSPoint(x: bounds.width - 5, y: 7), controlPoint2: NSPoint(x: bounds.width - 2, y: 10))
+            outline.line(to: NSPoint(x: bounds.width - 2, y: 21))
+            outline.curve(to: NSPoint(x: bounds.width - 10, y: 28), controlPoint1: NSPoint(x: bounds.width - 2, y: 26), controlPoint2: NSPoint(x: bounds.width - 5, y: 28))
+            outline.line(to: NSPoint(x: 10, y: 28))
+            outline.curve(to: NSPoint(x: 2, y: 21), controlPoint1: NSPoint(x: 5, y: 28), controlPoint2: NSPoint(x: 2, y: 26))
+            outline.line(to: NSPoint(x: 2, y: 15))
+            outline.curve(to: NSPoint(x: 11, y: 7), controlPoint1: NSPoint(x: 2, y: 10), controlPoint2: NSPoint(x: 5, y: 7))
+            outline.close()
+        } else {
+            outline.appendRoundedRect(NSRect(x: 2, y: 5, width: bounds.width - 4, height: 23), xRadius: 8, yRadius: 8)
+        }
+        (selected ? NSColor(white: 0.78, alpha: 1) : NSColor(white: 0.38, alpha: 1)).setStroke()
+        outline.lineWidth = 1
+        outline.stroke()
+        if selected {
+            NSColor.systemTeal.setFill()
+            NSBezierPath(roundedRect: NSRect(x: 28, y: 6, width: bounds.width - 56, height: 1.5), xRadius: 0.75, yRadius: 0.75).fill()
+        }
+        let statusColor: NSColor = conversation.status == .active ? .systemBlue : conversation.status == .completed ? .systemGreen : .secondaryLabelColor
+        statusColor.setFill()
+        NSBezierPath(ovalIn: NSRect(x: 9, y: 14, width: 5, height: 5)).fill()
+        let style = NSMutableParagraphStyle()
+        style.lineBreakMode = .byTruncatingTail
+        (conversation.title as NSString).draw(in: NSRect(x: 19, y: 9, width: bounds.width - (selected ? 42 : 27), height: 17), withAttributes: [.font: NSFont.systemFont(ofSize: 11, weight: .medium), .foregroundColor: NSColor.white, .paragraphStyle: style])
+        if selected {
+            NSColor.systemTeal.setFill()
+            let x = bounds.width - 17
+            NSBezierPath(ovalIn: NSRect(x: x, y: 15, width: 7, height: 5)).fill()
+            for dx: CGFloat in [0, 3, 6] { NSBezierPath(ovalIn: NSRect(x: x - 0.5 + dx, y: 11.5, width: 2.5, height: 3)).fill() }
+        }
+    }
+}
+
 final class UsageTouchBarView: NSView {
     var snapshot: UsageSnapshot? = .placeholder { didSet { errorMessage = nil; needsDisplay = true } }
     var errorMessage: String? { didSet { needsDisplay = true } }
@@ -9,7 +54,7 @@ final class UsageTouchBarView: NSView {
     override var intrinsicContentSize: NSSize { NSSize(width: 720, height: 30) }
     private let scroll = NSScrollView(frame: NSRect(x: 256, y: 0, width: 464, height: 30))
     private let content = NSView(frame: NSRect(x: 0, y: 0, width: 464, height: 30))
-    private var selectedID: String?
+    var selectedID: String? { didSet { if oldValue != selectedID { updateButtons() } } }
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -88,30 +133,22 @@ final class UsageTouchBarView: NSView {
         content.subviews.forEach { $0.removeFromSuperview() }
         var x: CGFloat = 0
         for conversation in conversations {
-            let button = NSButton(frame: NSRect(x: x, y: 3, width: 126, height: 24))
+            let button = ConversationButton(frame: NSRect(x: x, y: 0, width: 104, height: 30))
             button.isBordered = false
-            button.wantsLayer = true
-            button.layer?.backgroundColor = NSColor(white: 0.15, alpha: 1).cgColor
-            button.layer?.cornerRadius = 12
-            button.layer?.borderWidth = conversation.id == selectedID ? 1 : 0
-            button.layer?.borderColor = NSColor.systemBlue.cgColor
-            let dot = conversation.status == .active ? "● " : conversation.status == .completed ? "✓ " : "• "
-            let color: NSColor = conversation.status == .active ? .systemBlue : conversation.status == .completed ? .systemGreen : .secondaryLabelColor
-            let title = NSMutableAttributedString(string: dot, attributes: [.foregroundColor: color, .font: NSFont.systemFont(ofSize: 11, weight: .bold)])
-            title.append(NSAttributedString(string: conversation.title, attributes: [.foregroundColor: NSColor.white, .font: NSFont.systemFont(ofSize: 11, weight: .medium)]))
-            button.attributedTitle = title
-            button.lineBreakMode = .byTruncatingTail
+            button.conversation = conversation
+            button.selected = conversation.id == selectedID
+            button.setAccessibilityLabel(conversation.title)
             button.identifier = NSUserInterfaceItemIdentifier(conversation.id)
             button.target = self
             button.action = #selector(openConversation(_:))
             content.addSubview(button)
-            x += 132
+            x += 110
         }
         content.frame.size.width = max(scroll.contentSize.width, x)
     }
 
     @objc private func openConversation(_ sender: NSButton) {
         guard let id = sender.identifier?.rawValue, UUID(uuidString: id) != nil, let url = URL(string: "codex://threads/\(id)") else { return }
-        if NSWorkspace.shared.open(url) { selectedID = id; updateButtons() }
+        if NSWorkspace.shared.open(url) { selectedID = id }
     }
 }

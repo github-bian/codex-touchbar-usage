@@ -54,6 +54,7 @@ struct TouchBarUIHarness {
             Conversation(id: UUID().uuidString, title: "修复登录", status: .completed),
             Conversation(id: UUID().uuidString, title: "数据分析", status: .unknown)
         ]
+        codex.selectedID = codex.conversations.first?.id
         try render(codex, to: directory.appendingPathComponent("codex.png"))
         let zcode = ZCodeTouchBarView(frame: codex.frame)
         var z = ZCodeUsageSnapshot.placeholder
